@@ -6,9 +6,7 @@ This guide walks you through deploying Moltbot (AI-powered WhatsApp/Telegram ass
 
 **What You'll Build**:
 - Moltbot Gateway running on DigitalOcean Droplet
-- WhatsApp/Telegram bot integration
 - Secure access via Twingate (no public exposure)
-- Production-ready with monitoring and backups
 
 **Infrastructure**:
 - 1 DigitalOcean Droplet with Moltbot from Marketplace (2-4 vCPU, 4-8 GB RAM recommended)
@@ -31,8 +29,6 @@ This guide walks you through deploying Moltbot (AI-powered WhatsApp/Telegram ass
      ↓
 [Moltbot Gateway] ← Node.js app on localhost:18789
      ↓
-[WhatsApp/Telegram] ← Chat channels
-     ↓
 [Claude/OpenAI APIs] ← AI providers
 
 Security Layer:
@@ -41,7 +37,7 @@ Security Layer:
 [Twingate Cloud] enforces access policies
      ↓
 [Team Members] ← Twingate Client enables secure remote access
-                 (like SSH tunneling but with Zero Trust controls)
+                 (like SSH but with Zero Trust controls)
 ```
 
 **Why DigitalOcean?** Simple, reliable, great for small teams. A single Droplet runs everything.
@@ -53,15 +49,13 @@ Security Layer:
 ## Prerequisites
 
 ### Required
-- [ ] DigitalOcean account ([sign up here](https://www.digitalocean.com))
-- [ ] Twingate account ([sign up here](https://www.twingate.com))
-- [ ] Anthropic API key ([get here](https://console.anthropic.com))
-- [ ] SSH key added to DigitalOcean (for configuration access)
-- [ ] WhatsApp or Telegram account (for bot setup)
+- DigitalOcean account ([sign up here](https://www.digitalocean.com))
+- Twingate account ([sign up here](https://www.twingate.com))
+- SSH key added to DigitalOcean (for configuration access)
 
 ### Optional
-- [ ] Terraform (for automated infrastructure deployment)
-- [ ] DigitalOcean Spaces (for backups)
+- Terraform (for automated infrastructure deployment)
+- DigitalOcean Spaces (for backups)
 
 **Note**: With the marketplace app, manual setup via web UI is quick and straightforward. Terraform is optional for teams needing repeatable infrastructure.
 
@@ -101,7 +95,7 @@ export TOKEN="your-digitalocean-api-token"
 
 curl -X POST -H 'Content-Type: application/json' \
      -H 'Authorization: Bearer '$TOKEN'' -d \
-    '{"name":"moltbot-gateway","region":"nyc3","size":"s-2vcpu-4gb","image":"moltbot"}' \
+    '{"name":"clawdbot-gateway","region":"nyc3","size":"s-2vcpu-4gb","image":"moltbot"}' \
     "https://api.digitalocean.com/v2/droplets"
 ```
 
@@ -340,7 +334,7 @@ The Terraform configuration will automatically create:
 3. **Configure AI Provider**: After Twingate resource is set up:
    - SSH into the droplet via Twingate
    - Follow the [Model Providers documentation](https://docs.molt.bot/concepts/model-providers#model-providers) to configure providers
-   - Restart the gateway: `systemctl restart moltbot`
+   - Restart the gateway: `systemctl restart clawdbot`
 
 **Note**: The gateway will prompt for AI provider configuration on first access if not already configured.
 
@@ -447,12 +441,12 @@ ssh -L 18789:127.0.0.1:18789 user@your-server-ip
 **Debug Steps**:
 1. Verify Gateway token is set
    ```bash
-   echo $MOLTBOT_GATEWAY_TOKEN
+   echo $CLAWDBOT_GATEWAY_TOKEN
    ```
 
 2. Check token in CLI command
    ```bash
-   moltbot --url ws://<ip>:18789 --token <token> health
+   clawdbot --url ws://<ip>:18789 --token <token> health
    ```
 
 3. Review Gateway logs

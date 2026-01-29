@@ -21,12 +21,6 @@ variable "ssh_fingerprint" {
   type        = string
 }
 
-variable "anthropic_api_key" {
-  description = "Anthropic API key"
-  type        = string
-  sensitive   = true
-}
-
 variable "gateway_token" {
   description = "Clawdbot Gateway authentication token"
   type        = string
@@ -47,10 +41,5 @@ variable "twingate_refresh_token" {
 
 variable "twingate_network" {
   description = "Twingate network name"
-  type        = string
-}
-
-variable "admin_ip_address" {
-  description = "Your IP address for SSH access (CIDR format)"
   type        = string
 }

@@ -18,10 +18,8 @@ This directory contains Terraform configuration for deploying Moltbot with Twing
 
 2. **Edit `terraform.tfvars`** with your values:
    - DigitalOcean API token
-   - Anthropic API key
    - Twingate tokens (from Twingate Admin Console)
    - SSH key fingerprint
-   - Your IP address for initial SSH access
 
 3. **Initialize Terraform**:
    ```bash
