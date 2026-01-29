@@ -12,17 +12,16 @@ provider "digitalocean" {
 }
 
 # VPC for private networking
-resource "digitalocean_vpc" "clawdbot" {
-  name   = "clawdbot-vpc"
+resource "digitalocean_vpc" "moltbot" {
+  name   = "moltbot-vpc"
   region = var.region
 }
 
-# Firewall for Clawdbot + Twingate
-resource "digitalocean_firewall" "clawdbot" {
-  name = "clawdbot-twingate"
+# Firewall for Moltbot + Twingate
+resource "digitalocean_firewall" "moltbot" {
+  name = "moltbot-twingate"
 
-  droplet_ids = [digitalocean_droplet.clawdbot.id]
-
+  droplet_ids = [digitalocean_droplet.moltbot.id]
   # Allow outbound to internet (for API calls and Twingate)
   outbound_rule {
     protocol              = "tcp"
@@ -40,13 +39,13 @@ resource "digitalocean_firewall" "clawdbot" {
   # Access only via Twingate Connector (localhost)
 }
 
-# Droplet for Twingate Connector + Clawdbot Gateway
-resource "digitalocean_droplet" "clawdbot" {
+# Droplet for Twingate Connector + Moltbot Gateway
+resource "digitalocean_droplet" "moltbot" {
   image    = "moltbot" # DigitalOcean Marketplace image
-  name     = "clawdbot-twingate"
+  name     = "moltbot-twingate"
   region   = var.region
   size     = var.droplet_size
-  vpc_uuid = digitalocean_vpc.clawdbot.id
+  vpc_uuid = digitalocean_vpc.moltbot.id
 
   ssh_keys   = [var.ssh_fingerprint]
   monitoring = true # Enable DO monitoring
@@ -58,16 +57,16 @@ resource "digitalocean_droplet" "clawdbot" {
     twingate_network       = var.twingate_network
   })
 
-  tags = ["clawdbot", "twingate"]
+  tags = ["moltbot", "twingate"]
 }
 
 # Optional: Reserved IP for stability
-resource "digitalocean_reserved_ip" "clawdbot" {
-  droplet_id = digitalocean_droplet.clawdbot.id
+resource "digitalocean_reserved_ip" "moltbot" {
+  droplet_id = digitalocean_droplet.moltbot.id
   region     = var.region
 }
 
 # Outputs
 output "moltbot_private_ip" {
-  value = digitalocean_droplet.clawdbot.ipv4_address_private
+  value = digitalocean_droplet.moltbot.ipv4_address_private
 }

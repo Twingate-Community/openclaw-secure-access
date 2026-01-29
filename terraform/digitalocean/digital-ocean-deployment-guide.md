@@ -95,7 +95,7 @@ export TOKEN="your-digitalocean-api-token"
 
 curl -X POST -H 'Content-Type: application/json' \
      -H 'Authorization: Bearer '$TOKEN'' -d \
-    '{"name":"clawdbot-gateway","region":"nyc3","size":"s-2vcpu-4gb","image":"moltbot"}' \
+    '{"name":"moltbot-gateway","region":"nyc3","size":"s-2vcpu-4gb","image":"moltbot"}' \
     "https://api.digitalocean.com/v2/droplets"
 ```
 
@@ -505,7 +505,7 @@ ssh -L 18789:127.0.0.1:18789 user@your-server-ip
 
 ## Conclusion
 
-You now have a production-ready Clawdbot deployment on DigitalOcean with:
+You now have a production-ready Moltbot deployment on DigitalOcean with:
 
 ✅ **Private by Default**: Gateway never exposed to internet  
 ✅ **Secure Access**: Twingate Zero Trust instead of SSH tunnels  
@@ -532,13 +532,13 @@ See the reference repository for complete Infrastructure as Code for DigitalOcea
 
 **Includes**:
 - VPC and network configuration
-- Twingate Connector / Clawdbot Gateway Droplet
+- Twingate Connector / Moltbot Gateway Droplet
 - DigitalOcean Firewall rules
 
 **Clone and deploy**:
 ```bash
-git clone https://github.com/twingate/clawdbot-digitalocean
-cd clawdbot-digitalocean/terraform
+git clone https://github.com/twingate-community/secure-moltbot
+cd moltbot-digitalocean/terraform
 cp terraform.tfvars.example terraform.tfvars
 # Edit terraform.tfvars with your values
 terraform init

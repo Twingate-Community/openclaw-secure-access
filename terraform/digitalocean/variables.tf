@@ -11,7 +11,7 @@ variable "region" {
 }
 
 variable "droplet_size" {
-  description = "Droplet size for Clawdbot Gateway"
+  description = "Droplet size for Moltbot Gateway"
   type        = string
   default     = "s-2vcpu-4gb"
 }
@@ -22,7 +22,7 @@ variable "ssh_fingerprint" {
 }
 
 variable "gateway_token" {
-  description = "Clawdbot Gateway authentication token"
+  description = "Moltbot Gateway authentication token"
   type        = string
   sensitive   = true
 }
