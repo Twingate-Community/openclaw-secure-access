@@ -97,20 +97,6 @@ All deployments require:
 - **Cost**: Pay only for what you use (API calls + infrastructure)
 - **Security**: Zero Trust architecture with enterprise-grade access controls
 
-## 🛠️ Repository Structure
-
-```
-secure-clawdbot/
-├── README.md                          # This file
-├── terraform/
-│   ├── digitalocean/                  # DigitalOcean deployment
-│   │   ├── main.tf                   # Terraform infrastructure
-│   │   ├── variables.tf              # Configuration variables
-│   │   ├── cloud-init.yaml           # Automated setup script
-│   │   ├── README.md                 # Quick reference
-│   │   └── digital-ocean-deployment-guide.md  # Full guide
-```
-
 ## 🔐 Security Best Practices
 
 All deployments in this repo follow these principles:
