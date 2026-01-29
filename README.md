@@ -20,9 +20,9 @@ A curated collection of **Infrastructure as Code** and **step-by-step guides** f
 
 ## 🚀 Available Deployments
 
-| Platform | Status | Guide | Infrastructure |
-|----------|--------|-------|----------------|
-| **DigitalOcean** | ✅ Ready | [Deployment Guide](terraform/digitalocean/digital-ocean-deployment-guide.md) | [Terraform](terraform/digitalocean/) |
+| Platform | Guide | Infrastructure |
+|----------|-------|----------------|
+| **DigitalOcean** | [Deployment Guide](terraform/digitalocean/digital-ocean-deployment-guide.md) | [Terraform](terraform/digitalocean/) |
 
 ## 🏗️ Architecture Pattern
 
