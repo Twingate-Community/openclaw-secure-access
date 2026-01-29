@@ -101,7 +101,7 @@ All deployments require:
 
 All deployments in this repo follow these principles:
 
-1. **Never expose Gateway publicly**: Always bind to localhost/127.0.0.1
+1. **Never expose Gateway publicly**: Always bind to `localhost/127.0.0.1`
 2. **Zero inbound firewall rules**: Use Twingate for all remote access
 3. **Secrets management**: Never commit API keys or tokens
 4. **Least privilege**: Grant minimum required permissions

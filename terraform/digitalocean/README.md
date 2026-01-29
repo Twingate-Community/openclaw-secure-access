@@ -1,6 +1,6 @@
-# Terraform Files for Clawdbot on DigitalOcean
+# Terraform Files for Moltbot on DigitalOcean
 
-This directory contains Terraform configuration for deploying Clawdbot with Twingate on DigitalOcean.
+This directory contains Terraform configuration for deploying Moltbot with Twingate on DigitalOcean.
 
 ## Files
 
@@ -40,9 +40,8 @@ This directory contains Terraform configuration for deploying Clawdbot with Twin
 
 ## What Gets Created
 
-- **VPC**: Private network (10.10.10.0/24)
 - **Firewall**: Zero inbound rules, all outbound allowed
-- **Droplet**: Ubuntu 22.04 with Twingate Connector + Clawdbot Gateway
+- **Droplet**: Ubuntu 22.04 with Twingate Connector + Moltbot Gateway
 - **Reserved IP**: Optional static IP for the Droplet
 
 ## Security Notes
