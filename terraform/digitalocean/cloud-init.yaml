@@ -10,73 +10,50 @@ packages:
   - docker.io
 
 write_files:
-  - path: /etc/clawdbot/config.json
-    permissions: "0600"
-    content: |
-      {
-        "gateway": {
-          "bind": "loopback",
-          "port": 18789,
-          "auth": {
-            "mode": "token"
-          },
-          "controlUi": {
-            "enabled": true
-          }
-        },
-        "agents": {
-          "defaults": {
-            "provider": "anthropic",
-            "model": "claude-3-5-sonnet-20241022",
-            "sandbox": {
-              "mode": "non-main"
-            }
-          }
-        },
-        "pairing": {
-          "defaults": {
-            "mode": "approval-required"
-          }
-        }
-      }
-
   - path: /etc/environment
     append: true
     content: |
-      ANTHROPIC_API_KEY="${anthropic_api_key}"
-      CLAWDBOT_GATEWAY_TOKEN="${gateway_token}"
       TWINGATE_ACCESS_TOKEN="${twingate_access_token}"
       TWINGATE_REFRESH_TOKEN="${twingate_refresh_token}"
       TWINGATE_NETWORK="${twingate_network}"
 
 runcmd:
-  # Install Node.js 22
-  - curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
-  - apt-get install -y nodejs
+  # Note: Moltbot is pre-installed from marketplace image
+  # Only need to configure Twingate and environment
 
-  # Install Moltbot/Clawdbot
-  - curl -fsSL https://molt.bot/install.sh | bash
+  # Update or add gateway token to clawdbot.env (overwrite existing entry)
+  - |
+    touch /opt/clawdbot.env
+    sed -i '/^CLAWDBOT_GATEWAY_TOKEN=/d' /opt/clawdbot.env
+    echo "CLAWDBOT_GATEWAY_TOKEN=${gateway_token}" >> /opt/clawdbot.env
+    chmod 0600 /opt/clawdbot.env
 
+  # Configure Caddy to only listen on private IP (no public access)
+  - |
+    PRIVATE_IP=$(ip -4 addr show eth1 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
+    cat > /etc/caddy/Caddyfile <<EOF
+    $${PRIVATE_IP} {
+        reverse_proxy localhost:18789
+        header X-DO-MARKETPLACE "moltbot"
+    }
+    EOF
+  - systemctl restart caddy
   # Install Twingate Connector
   - |
     curl "https://binaries.twingate.com/connector/setup.sh" | \
     TWINGATE_ACCESS_TOKEN="${twingate_access_token}" \
     TWINGATE_REFRESH_TOKEN="${twingate_refresh_token}" \
     TWINGATE_NETWORK="${twingate_network}" \
-    TWINGATE_LABEL_DEPLOYED_BY="clawdbot-auto" \
+    TWINGATE_LABEL_DEPLOYED_BY="community-moltbot-DO" \
     bash
 
-  # Configure and start Moltbot
-  - mkdir -p ~/.clawdbot
-  - source /etc/environment
-  - moltbot onboard --install-daemon --non-interactive || true
-  - systemctl enable moltbot-gateway
-  - systemctl start moltbot-gateway
+  # Restart gateway to pick up env file changes
+  - systemctl restart clawdbot
 
   # Verify services
   - systemctl status twingate-connector
-  - systemctl status moltbot-gateway
+  - systemctl status clawdbot
 
-  - echo "Twingate Connector and Clawdbot Gateway deployed"
+  - echo "Twingate Connector and Moltbot Gateway deployed"
 
 final_message: "Both services ready after $UPTIME seconds"
