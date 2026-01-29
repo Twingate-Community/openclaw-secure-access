@@ -1,17 +1,15 @@
-# How to Setup and Secure Clawdbot on DigitalOcean
+# How to Setup and Secure Moltbot on DigitalOcean
 
 ## Overview
 
-This guide walks you through deploying Clawdbot (AI-powered WhatsApp/Telegram assistant) on DigitalOcean, then securing it with Twingate's Zero Trust network access. You'll go from zero to a production-ready AI agent platform with enterprise security in under an hour.
+This guide walks you through deploying Moltbot (AI-powered WhatsApp/Telegram assistant) on DigitalOcean using the official [Moltbot Marketplace app](https://marketplace.digitalocean.com/apps/moltbot), then securing it with Twingate's Zero Trust network access. You'll go from zero to a production-ready AI agent platform with enterprise security in under 30 minutes.
 
 **What You'll Build**:
-- Clawdbot Gateway running on DigitalOcean Droplet
-- WhatsApp/Telegram bot integration
+- Moltbot Gateway running on DigitalOcean Droplet
 - Secure access via Twingate (no public exposure)
-- Production-ready with monitoring and backups
 
 **Infrastructure**:
-- 1 DigitalOcean Droplet (2-4 vCPU, 4-8 GB RAM recommended)
+- 1 DigitalOcean Droplet with Moltbot from Marketplace (2-4 vCPU, 4-8 GB RAM recommended)
 - Twingate Connector for secure access (no public Gateway exposure)
 - Private networking only
 
@@ -20,7 +18,7 @@ This guide walks you through deploying Clawdbot (AI-powered WhatsApp/Telegram as
 - Teams needing secure, private AI agent infrastructure
 - Anyone moving from Tailscale to more granular access control
 
-**Time to Complete**: 30-45 minutes
+**Time to Complete**: 20-30 minutes
 
 ---
 
@@ -29,9 +27,7 @@ This guide walks you through deploying Clawdbot (AI-powered WhatsApp/Telegram as
 ```
 [DigitalOcean Droplet]
      ↓
-[Moltbot/Clawdbot Gateway] ← Node.js app on localhost:18789
-     ↓
-[WhatsApp/Telegram] ← Chat channels
+[Moltbot Gateway] ← Node.js app on localhost:18789
      ↓
 [Claude/OpenAI APIs] ← AI providers
 
@@ -41,7 +37,7 @@ Security Layer:
 [Twingate Cloud] enforces access policies
      ↓
 [Team Members] ← Twingate Client enables secure remote access
-                 (like SSH tunneling but with Zero Trust controls)
+                 (like SSH but with Zero Trust controls)
 ```
 
 **Why DigitalOcean?** Simple, reliable, great for small teams. A single Droplet runs everything.
@@ -53,48 +49,59 @@ Security Layer:
 ## Prerequisites
 
 ### Required
-- [ ] DigitalOcean account ([sign up here](https://www.digitalocean.com))
-- [ ] Twingate account ([sign up here](https://www.twingate.com))
-- [ ] Anthropic API key ([get here](https://console.anthropic.com))
-- [ ] SSH key added to DigitalOcean
-- [ ] WhatsApp or Telegram account (for bot setup)
+- DigitalOcean account ([sign up here](https://www.digitalocean.com))
+- Twingate account ([sign up here](https://www.twingate.com))
+- SSH key added to DigitalOcean (for configuration access)
 
 ### Optional
-- [ ] Terraform (for automated deployment)
-- [ ] DigitalOcean Spaces (for backups)
+- Terraform (for automated infrastructure deployment)
+- DigitalOcean Spaces (for backups)
+
+**Note**: With the marketplace app, manual setup via web UI is quick and straightforward. Terraform is optional for teams needing repeatable infrastructure.
 
 ---
 
-## Step 1: Create DigitalOcean Droplet (5 minutes)
+## Step 1: Create Moltbot Droplet from Marketplace (2 minutes)
 
-### 1.1 Choose Your Deployment Method
+### 1.1 Deploy from DigitalOcean Marketplace
 
-**Option A: Manual Setup** (recommended for first time)  
-**Option B: Terraform** (for automation/repeatability)
-
-We'll cover both. Start with Option A to understand what's happening.
-
-### 1.2 Create Droplet via Web UI
-
-1. Log into [DigitalOcean](https://cloud.digitalocean.com)
-2. Click **Create → Droplets**
+1. Visit the [Moltbot Marketplace page](https://marketplace.digitalocean.com/apps/moltbot)
+2. Click **Create Moltbot Droplet**
 3. Configure:
-   - **Image**: Ubuntu 22.04 LTS
-   - **Size**: Basic (2 vCPU, 4 GB RAM recommended)
+   - **Size**: Basic (s-2vcpu-4gb or larger recommended)
    - **Region**: Choose closest to your team
    - **VPC**: Create new VPC or use default
    - **SSH Key**: Add your public key
-   - **Hostname**: `clawdbot-gateway`
+   - **Hostname**: `moltbot-gateway`
    - **Enable Monitoring**: ✓
 4. Click **Create Droplet**
+
+**What You Get**:
+- Ubuntu 22.04 LTS base
+- Moltbot pre-installed (Version 2026.1.24-1)
+- Node.js and dependencies ready
+- Ready for configuration
 
 **Note down**:
 - Droplet IP address
 - SSH access: `ssh root@<droplet-ip>`
 
+### 1.2 Alternative: Deploy via API
+
+For automation or CI/CD:
+
+```bash
+export TOKEN="your-digitalocean-api-token"
+
+curl -X POST -H 'Content-Type: application/json' \
+     -H 'Authorization: Bearer '$TOKEN'' -d \
+    '{"name":"clawdbot-gateway","region":"nyc3","size":"s-2vcpu-4gb","image":"moltbot"}' \
+    "https://api.digitalocean.com/v2/droplets"
+```
+
 ---
 
-## Step 2: Install Clawdbot (10 minutes)
+## Step 2: Configure Moltbot (2 minutes)
 
 ### 2.1 SSH into Your Droplet
 
@@ -102,81 +109,33 @@ We'll cover both. Start with Option A to understand what's happening.
 ssh root@<your-droplet-ip>
 ```
 
-### 2.2 Install Node.js 22
+### 2.2 Configure Caddy for Private IP Only
 
-Clawdbot requires Node.js ≥22:
-
-```bash
-# Install Node.js 22
-curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
-apt-get install -y nodejs
-
-# Verify
-node --version  # Should show v22.x
-```
-
-### 2.3 Install Moltbot CLI
+The marketplace image includes Caddy as a reverse proxy. Configure it to only listen on the private IP:
 
 ```bash
-# Install via official script
-curl -fsSL https://molt.bot/install.sh | bash
+# Get your droplet's private IP
+PRIVATE_IP=$(hostname -I | awk '{print $2}')
+echo "Private IP: $PRIVATE_IP"
 
-# Verify
-moltbot --version
+# Update Caddyfile to remove public access
+sudo tee /etc/caddy/Caddyfile > /dev/null <<EOF
+${PRIVATE_IP} {
+    reverse_proxy localhost:18789
+    header X-DO-MARKETPLACE "moltbot"
+}
+EOF
+
+# Restart Caddy
+sudo systemctl restart caddy
+
+# Verify Caddy is running
+sudo systemctl status caddy
 ```
 
-### 2.4 Run Onboarding Wizard
+**What this does**: Restricts the reverse proxy to only respond on the private IP address, removing all public internet access. The gateway is now only accessible via Twingate.
 
-```bash
-# Start the wizard
-moltbot onboard --install-daemon
-```
-
-**Wizard Configuration**:
-1. **Gateway Type**: Local (runs on this server)
-2. **Auth**: Anthropic API key (paste yours)
-3. **Channels**: Select WhatsApp or Telegram
-   - WhatsApp: QR login in next step
-   - Telegram: Need bot token from @BotFather
-4. **Daemon**: Yes (installs systemd service)
-
-**What this creates**:
-- Config: `~/.clawdbot/moltbot.json`
-- Service: `moltbot-gateway` (systemd)
-- Gateway binds to `127.0.0.1:18789` (localhost only)
-
-### 2.5 Connect Chat Platform
-
-**For WhatsApp**:
-```bash
-moltbot channels login
-# Scan QR code with WhatsApp app
-# Settings → Linked Devices → Link a Device
-```
-
-**For Telegram**:
-```bash
-# Create bot via @BotFather first
-# Then wizard will have configured it
-# Or manually edit ~/.clawdbot/moltbot.json
-```
-
-### 2.6 Verify Installation
-
-```bash
-# Check gateway status
-moltbot gateway status
-
-# Health check
-moltbot health
-
-# View logs
-journalctl -u moltbot-gateway -f
-```
-
-**Expected**: Gateway running on port 18789, all health checks pass.
-
-✅ **Checkpoint**: Clawdbot is running on localhost. Now let's set up secure access.
+✅ **Checkpoint**: Moltbot is pre-configured and running, Caddy only listens on private IP. Now let's set up secure access.
 
 ---
 
@@ -207,7 +166,7 @@ curl "https://binaries.twingate.com/connector/setup.sh" | \
   sudo TWINGATE_ACCESS_TOKEN="$TWINGATE_ACCESS_TOKEN" \
   TWINGATE_REFRESH_TOKEN="$TWINGATE_REFRESH_TOKEN" \
   TWINGATE_NETWORK="$TWINGATE_NETWORK" \
-  TWINGATE_LABEL_DEPLOYED_BY="clawdbot" \
+  TWINGATE_LABEL_DEPLOYED_BY="moltbot" \
   bash
 
 # Verify
@@ -218,10 +177,10 @@ sudo systemctl status twingate-connector
 
 In Twingate Admin Console:
 
-**Resource 1: Clawdbot Gateway**
+**Resource 1: Moltbot Gateway**
 1. Go to **Resources → Add Resource**
 2. Configure:
-   - **Name**: Clawdbot Gateway
+   - **Name**: Moltbot Gateway
    - **Address**: `<droplet-private-ip>`
 3. **Create Resource**
 
@@ -229,8 +188,8 @@ In Twingate Admin Console:
 
 1. Go to **Access → Policies**
 2. Create policy:
-   - **Name**: Clawdbot Team Access
-   - **Resources**: Clawdbot Gateway
+   - **Name**: Moltbot Team Access
+   - **Resources**: Moltbot Gateway
    - **Users/Groups**: Your team
    - **Require MFA**: ✓ (recommended)
 3. **Save**
@@ -264,8 +223,8 @@ Now that Twingate provides access, remove all public inbound ports for maximum s
 1. Go to [DigitalOcean Console → Networking → Firewalls](https://cloud.digitalocean.com/networking/firewalls)
 2. Click **Create Firewall**
 3. Configure:
-   - **Name**: `clawdbot-secure`
-   - **Apply to Droplets**: Select your `clawdbot-gateway` Droplet
+   - **Name**: `moltbot-secure`
+   - **Apply to Droplets**: Select your `moltbot-gateway` Droplet
 
 ### 4.2 Inbound Rules
 
@@ -306,261 +265,78 @@ ssh <user>@<droplet-ip>
 
 ## Alternative: Terraform Automation (Optional)
 
-For repeatable infrastructure, use Terraform:
+For repeatable, automated infrastructure deployment, use the provided Terraform configuration files in this directory.
 
-### Terraform Configuration
+### Prerequisites
 
-**terraform/digitalocean/main.tf**:
-```hcl
-terraform {
-  required_providers {
-    digitalocean = {
-      source  = "digitalocean/digitalocean"
-      version = "~> 2.0"
-    }
-  }
-}
+1. Install Terraform ([download here](https://www.terraform.io/downloads))
+2. Gather required credentials:
+   - DigitalOcean API token
+   - Twingate Connector tokens (from Twingate Admin Console)
+   - SSH key fingerprint
 
-provider "digitalocean" {
-  token = var.do_token
-}
+### Quick Start
 
-# VPC for private networking
-resource "digitalocean_vpc" "clawdbot" {
-  name     = "clawdbot-vpc"
-  region   = var.region
-  ip_range = "10.10.10.0/24"
-}
+1. **Copy the example variables file**:
+   ```bash
+   cd terraform/digitalocean
+   cp terraform.tfvars.example terraform.tfvars
+   ```
 
-# Firewall for Clawdbot + Twingate
-resource "digitalocean_firewall" "clawdbot" {
-  name = "clawdbot-twingate"
+2. **Edit `terraform.tfvars`** with your values:
+   - `do_token`: Your DigitalOcean API token
+   - `twingate_access_token`: From Twingate Admin Console
+   - `twingate_refresh_token`: From Twingate Admin Console
+   - `twingate_network`: Your Twingate network name (without .twingate.com)
+   - `ssh_fingerprint`: Your SSH key fingerprint from DigitalOcean
+   - `region`, `droplet_size`: Customize as needed
 
-  droplet_ids = [digitalocean_droplet.clawdbot.id]
+3. **Deploy**:
+   ```bash
+   terraform init
+   terraform plan    # Review what will be created
+   terraform apply   # Deploy infrastructure
+   ```
 
-  # Allow outbound to internet (for API calls and Twingate)
-  outbound_rule {
-    protocol              = "tcp"
-    port_range            = "1-65535"
-    destination_addresses = ["0.0.0.0/0", "::/0"]
-  }
+### What Gets Created
 
-  outbound_rule {
-    protocol              = "udp"
-    port_range            = "1-65535"
-    destination_addresses = ["0.0.0.0/0", "::/0"]
-  }
+The Terraform configuration will automatically create:
+- **Firewall**: Zero inbound rules, all outbound allowed
+- **Droplet**: Ubuntu with Moltbot marketplace image
+- **Reserved IP**: Static IP address for the droplet
+- **Caddy Configuration**: Via cloud-init, restricts to private IP only
+- **Twingate Connector**: Installed and configured via cloud-init
 
-  # No public access to Gateway port
-  # Access only via Twingate Connector (localhost)
-}
+### Files Included
 
-# Droplet for Twingate Connector + Clawdbot Gateway
-resource "digitalocean_droplet" "clawdbot" {
-  image    = "ubuntu-22-04-x64"
-  name     = "clawdbot-twingate"
-  region   = var.region
-  size     = var.droplet_size
-  vpc_uuid = digitalocean_vpc.clawdbot.id
+- [`main.tf`](main.tf): Main infrastructure configuration
+- [`variables.tf`](variables.tf): Variable definitions
+- [`cloud-init.yaml`](cloud-init.yaml): Automated server configuration
+- [`terraform.tfvars.example`](terraform.tfvars.example): Example variables template
 
-  ssh_keys = [var.ssh_fingerprint]
-  monitoring = true  # Enable DO monitoring
+### After Deployment
 
-  user_data = templatefile("${path.module}/cloud-init.yaml", {
-    anthropic_api_key      = var.anthropic_api_key
-    gateway_token          = var.gateway_token
-    twingate_access_token  = var.twingate_access_token
-    twingate_refresh_token = var.twingate_refresh_token
-    twingate_network       = var.twingate_network
-  })
+1. Get the droplet IP from Terraform outputs:
+   ```bash
+   terraform output moltbot_private_ip
+   ```
 
-  tags = ["clawdbot", "twingate"]
-}
+2. **Configure Twingate Resource** (required for access):
+   - Go to Twingate Admin Console
+   - Navigate to **Resources → Add Resource**
+   - Configure:
+     - **Name**: Moltbot Gateway
+     - **Address**: Use the `moltbot_private_ip` from step 1
+   - Install Twingate Client on your local machine
 
-# Optional: Reserved IP for stability
-resource "digitalocean_reserved_ip" "clawdbot" {
-  droplet_id = digitalocean_droplet.clawdbot.id
-  region     = var.region
-}
+   See Step 3.3 in the main guide above for detailed instructions.
 
-# Outputs
-output "clawdbot_private_ip" {
-  value = digitalocean_droplet.clawdbot.ipv4_address_private
-}
+3. **Configure AI Provider**: After Twingate resource is set up:
+   - SSH into the droplet via Twingate
+   - Follow the [Model Providers documentation](https://docs.molt.bot/concepts/model-providers#model-providers) to configure providers
+   - Restart the gateway: `systemctl restart clawdbot`
 
-output "clawdbot_public_ip" {
-  value = digitalocean_reserved_ip.clawdbot.ip_address
-  description = "Use for initial SSH access, then restrict via firewall"
-}
-```
-
-**terraform/digitalocean/cloud-init.yaml**:
-```yaml
-#cloud-config
-
-package_update: true
-package_upgrade: true
-
-packages:
-  - curl
-  - git
-  - htop
-  - docker.io
-
-write_files:
-  - path: /etc/clawdbot/config.json
-    permissions: '0600'
-    content: |
-      {
-        "gateway": {
-          "bind": "loopback",
-          "port": 18789,
-          "auth": {
-            "mode": "token"
-          },
-          "controlUi": {
-            "enabled": true
-          }
-        },
-        "agents": {
-          "defaults": {
-            "provider": "anthropic",
-            "model": "claude-3-5-sonnet-20241022",
-            "sandbox": {
-              "mode": "non-main"
-            }
-          }
-        },
-        "pairing": {
-          "defaults": {
-            "mode": "approval-required"
-          }
-        }
-      }
-
-  - path: /etc/environment
-    append: true
-    content: |
-      ANTHROPIC_API_KEY="${anthropic_api_key}"
-      CLAWDBOT_GATEWAY_TOKEN="${gateway_token}"
-      TWINGATE_ACCESS_TOKEN="${twingate_access_token}"
-      TWINGATE_REFRESH_TOKEN="${twingate_refresh_token}"
-      TWINGATE_NETWORK="${twingate_network}"
-
-runcmd:
-  # Install Node.js 22
-  - curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
-  - apt-get install -y nodejs
-  
-  # Install Moltbot/Clawdbot
-  - curl -fsSL https://molt.bot/install.sh | bash
-  
-  # Install Twingate Connector
-  - |
-    curl "https://binaries.twingate.com/connector/setup.sh" | \
-    TWINGATE_ACCESS_TOKEN="${twingate_access_token}" \
-    TWINGATE_REFRESH_TOKEN="${twingate_refresh_token}" \
-    TWINGATE_NETWORK="${twingate_network}" \
-    TWINGATE_LABEL_DEPLOYED_BY="clawdbot-auto" \
-    bash
-  
-  # Configure and start Moltbot
-  - mkdir -p ~/.clawdbot
-  - source /etc/environment
-  - moltbot onboard --install-daemon --non-interactive || true
-  - systemctl enable moltbot-gateway
-  - systemctl start moltbot-gateway
-  
-  # Verify services
-  - systemctl status twingate-connector
-  - systemctl status moltbot-gateway
-  
-  - echo "Twingate Connector and Clawdbot Gateway deployed"
-
-final_message: "Both services ready after $UPTIME seconds"
-```
-
-**terraform/digitalocean/variables.tf**:
-```hcl
-variable "do_token" {
-  description = "DigitalOcean API token"
-  type        = string
-  sensitive   = true
-}
-
-variable "region" {
-  description = "DigitalOcean region"
-  type        = string
-  default     = "nyc3"
-}
-
-variable "droplet_size" {
-  description = "Droplet size for Clawdbot Gateway"
-  type        = string
-  default     = "s-2vcpu-4gb"
-}
-
-variable "ssh_fingerprint" {
-  description = "SSH key fingerprint for Droplet access"
-  type        = string
-}
-
-variable "anthropic_api_key" {
-  description = "Anthropic API key"
-  type        = string
-  sensitive   = true
-}
-
-variable "gateway_token" {
-  description = "Clawdbot Gateway authentication token"
-  type        = string
-  sensitive   = true
-}
-
-variable "twingate_access_token" {
-  description = "Twingate Connector access token"
-  type        = string
-  sensitive   = true
-}
-
-variable "twingate_refresh_token" {
-  description = "Twingate Connector refresh token"
-  type        = string
-  sensitive   = true
-}
-
-variable "twingate_network" {
-  description = "Twingate network name"
-  type        = string
-}
-
-variable "admin_ip_address" {
-  description = "Your IP address for SSH access (CIDR format)"
-  type        = string
-}
-```
-
-**terraform/digitalocean/terraform.tfvars** (create this, don't commit):
-```hcl
-do_token               = "dop_v1_xxxxx"
-region                 = "nyc3"
-droplet_size           = "s-2vcpu-4gb"
-ssh_fingerprint        = "your-ssh-key-fingerprint"
-anthropic_api_key      = "sk-ant-xxxxx"
-gateway_token          = "your-secure-random-token"
-twingate_access_token  = "your-twingate-access-token"
-twingate_refresh_token = "your-twingate-refresh-token"
-twingate_network       = "yourcompany"
-admin_ip_address       = "1.2.3.4/32"  # Your IP for SSH
-```
-
-**Deploy**:
-```bash
-cd terraform/digitalocean
-terraform init
-terraform plan
-terraform apply
-```
+**Note**: The gateway will prompt for AI provider configuration on first access if not already configured.
 
 ---
 
@@ -592,7 +368,7 @@ df -h
 **Config Backup**:
 ```bash
 # Backup Moltbot config
-tar -czf moltbot-backup.tar.gz ~/.clawdbot/
+tar -czf moltbot-backup.tar.gz ~/.moltbot/
 
 # Includes:
 # - moltbot.json (main config)
@@ -714,7 +490,7 @@ ssh -L 18789:127.0.0.1:18789 user@your-server-ip
 - [Community Forum](https://community.twingate.com)
 - [Status Page](https://status.twingate.com)
 
-### Clawdbot/Moltbot Resources
+### Moltbot Resources
 - [Documentation](https://docs.molt.bot)
 - [Getting Started](https://docs.molt.bot/start/getting-started)
 - [GitHub](https://github.com/moltbot/moltbot)

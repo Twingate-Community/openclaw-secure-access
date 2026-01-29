@@ -78,8 +78,6 @@ All deployments require:
 
 - **Cloud/Platform Account**: Sign up for your chosen provider
 - **Twingate Account**: [Free account](https://www.twingate.com) for Zero Trust access
-- **Anthropic API Key**: [Get one here](https://console.anthropic.com)
-- **Chat Platform**: WhatsApp or Telegram account
 
 ## 🔧 What is Clawdbot?
 
@@ -101,7 +99,7 @@ All deployments require:
 
 All deployments in this repo follow these principles:
 
-1. **Never expose Gateway publicly**: Always bind to localhost/127.0.0.1
+1. **Never expose Gateway publicly**: Always bind to `localhost/127.0.0.1`
 2. **Zero inbound firewall rules**: Use Twingate for all remote access
 3. **Secrets management**: Never commit API keys or tokens
 4. **Least privilege**: Grant minimum required permissions
@@ -113,7 +111,6 @@ All deployments in this repo follow these principles:
 
 - [Clawdbot Documentation](https://molt.bot/docs)
 - [Twingate Documentation](https://docs.twingate.com)
-- [Anthropic API Docs](https://docs.anthropic.com)
 
 ## 📝 License
 

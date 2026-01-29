@@ -13,9 +13,8 @@ provider "digitalocean" {
 
 # VPC for private networking
 resource "digitalocean_vpc" "clawdbot" {
-  name     = "clawdbot-vpc"
-  region   = var.region
-  ip_range = "10.10.10.0/24"
+  name   = "clawdbot-vpc"
+  region = var.region
 }
 
 # Firewall for Clawdbot + Twingate
@@ -43,7 +42,7 @@ resource "digitalocean_firewall" "clawdbot" {
 
 # Droplet for Twingate Connector + Clawdbot Gateway
 resource "digitalocean_droplet" "clawdbot" {
-  image    = "ubuntu-22-04-x64"
+  image    = "moltbot" # DigitalOcean Marketplace image
   name     = "clawdbot-twingate"
   region   = var.region
   size     = var.droplet_size
@@ -53,7 +52,6 @@ resource "digitalocean_droplet" "clawdbot" {
   monitoring = true # Enable DO monitoring
 
   user_data = templatefile("${path.module}/cloud-init.yaml", {
-    anthropic_api_key      = var.anthropic_api_key
     gateway_token          = var.gateway_token
     twingate_access_token  = var.twingate_access_token
     twingate_refresh_token = var.twingate_refresh_token
@@ -70,11 +68,6 @@ resource "digitalocean_reserved_ip" "clawdbot" {
 }
 
 # Outputs
-output "clawdbot_private_ip" {
+output "moltbot_private_ip" {
   value = digitalocean_droplet.clawdbot.ipv4_address_private
-}
-
-output "clawdbot_public_ip" {
-  value       = digitalocean_reserved_ip.clawdbot.ip_address
-  description = "Use for initial SSH access, then restrict via firewall"
 }
