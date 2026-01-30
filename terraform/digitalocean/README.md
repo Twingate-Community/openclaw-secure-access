@@ -1,6 +1,6 @@
-# Terraform Files for Moltbot on DigitalOcean
+# Terraform Files for OpenClaw on DigitalOcean
 
-This directory contains Terraform configuration for deploying Moltbot with Twingate on DigitalOcean.
+This directory contains Terraform configuration for deploying OpenClaw with Twingate on DigitalOcean.
 
 ## Files
 
@@ -39,7 +39,7 @@ This directory contains Terraform configuration for deploying Moltbot with Twing
 ## What Gets Created
 
 - **Firewall**: Zero inbound rules, all outbound allowed
-- **Droplet**: Ubuntu 22.04 with Twingate Connector + Moltbot Gateway
+- **Droplet**: Ubuntu 22.04 with Twingate Connector + OpenClaw Gateway
 - **Reserved IP**: Optional static IP for the Droplet
 
 ## Security Notes
@@ -55,4 +55,4 @@ This directory contains Terraform configuration for deploying Moltbot with Twing
 2. Configure Twingate Resources in Admin Console
 3. Access via Twingate Client
 
-See the main deployment guide for complete setup instructions.
+See the full [deployment guide](https://twingate.com/docs/openclaw-digitalocean) for complete setup instructions.

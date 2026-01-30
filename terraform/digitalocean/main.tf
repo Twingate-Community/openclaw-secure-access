@@ -12,16 +12,16 @@ provider "digitalocean" {
 }
 
 # VPC for private networking
-resource "digitalocean_vpc" "moltbot" {
-  name   = "moltbot-vpc"
+resource "digitalocean_vpc" "openclaw" {
+  name   = "openclaw-vpc"
   region = var.region
 }
 
-# Firewall for Moltbot + Twingate
-resource "digitalocean_firewall" "moltbot" {
-  name = "moltbot-twingate"
+# Firewall for OpenClaw + Twingate
+resource "digitalocean_firewall" "openclaw" {
+  name = "openclaw-twingate"
 
-  droplet_ids = [digitalocean_droplet.moltbot.id]
+  droplet_ids = [digitalocean_droplet.openclaw.id]
   # Allow outbound to internet (for API calls and Twingate)
   outbound_rule {
     protocol              = "tcp"
@@ -39,13 +39,13 @@ resource "digitalocean_firewall" "moltbot" {
   # Access only via Twingate Connector (localhost)
 }
 
-# Droplet for Twingate Connector + Moltbot Gateway
-resource "digitalocean_droplet" "moltbot" {
-  image    = "moltbot" # DigitalOcean Marketplace image
-  name     = "moltbot-twingate"
+# Droplet for Twingate Connector + OpenClaw Gateway
+resource "digitalocean_droplet" "openclaw" {
+  image    = "openclaw" # DigitalOcean Marketplace image
+  name     = "openclaw-twingate"
   region   = var.region
   size     = var.droplet_size
-  vpc_uuid = digitalocean_vpc.moltbot.id
+  vpc_uuid = digitalocean_vpc.openclaw.id
 
   ssh_keys   = [var.ssh_fingerprint]
   monitoring = true # Enable DO monitoring
@@ -57,16 +57,16 @@ resource "digitalocean_droplet" "moltbot" {
     twingate_network       = var.twingate_network
   })
 
-  tags = ["moltbot", "twingate"]
+  tags = ["openclaw", "twingate"]
 }
 
 # Optional: Reserved IP for stability
-resource "digitalocean_reserved_ip" "moltbot" {
-  droplet_id = digitalocean_droplet.moltbot.id
+resource "digitalocean_reserved_ip" "openclaw" {
+  droplet_id = digitalocean_droplet.openclaw.id
   region     = var.region
 }
 
 # Outputs
-output "moltbot_private_ip" {
-  value = digitalocean_droplet.moltbot.ipv4_address_private
+output "openclaw_private_ip" {
+  value = digitalocean_droplet.openclaw.ipv4_address_private
 }

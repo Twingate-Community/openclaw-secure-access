@@ -18,15 +18,15 @@ write_files:
       TWINGATE_NETWORK="${twingate_network}"
 
 runcmd:
-  # Note: Moltbot is pre-installed from marketplace image
+  # Note: OpenClaw is pre-installed from marketplace image
   # Only need to configure Twingate and environment
 
-  # Update or add gateway token to clawdbot.env (overwrite existing entry)
+  # Update or add gateway token to openclaw.env (overwrite existing entry)
   - |
-    touch /opt/clawdbot.env
-    sed -i '/^CLAWDBOT_GATEWAY_TOKEN=/d' /opt/clawdbot.env
-    echo "CLAWDBOT_GATEWAY_TOKEN=${gateway_token}" >> /opt/clawdbot.env
-    chmod 0600 /opt/clawdbot.env
+    touch /opt/openclaw.env
+    sed -i '/^OPENCLAW_GATEWAY_TOKEN=/d' /opt/openclaw.env
+    echo "OPENCLAW_GATEWAY_TOKEN=${gateway_token}" >> /opt/openclaw.env
+    chmod 0600 /opt/openclaw.env
 
   # Configure Caddy to only listen on private IP (no public access)
   - |
@@ -34,7 +34,7 @@ runcmd:
     cat > /etc/caddy/Caddyfile <<EOF
     $${PRIVATE_IP} {
         reverse_proxy localhost:18789
-        header X-DO-MARKETPLACE "moltbot"
+        header X-DO-MARKETPLACE "openclaw"
     }
     EOF
   - systemctl restart caddy
@@ -44,16 +44,16 @@ runcmd:
     TWINGATE_ACCESS_TOKEN="${twingate_access_token}" \
     TWINGATE_REFRESH_TOKEN="${twingate_refresh_token}" \
     TWINGATE_NETWORK="${twingate_network}" \
-    TWINGATE_LABEL_DEPLOYED_BY="community-moltbot-DO" \
+    TWINGATE_LABEL_DEPLOYED_BY="community-openclaw-DO" \
     bash
 
   # Restart gateway to pick up env file changes
-  - systemctl restart clawdbot
+  - systemctl restart openclaw
 
   # Verify services
   - systemctl status twingate-connector
-  - systemctl status clawdbot
+  - systemctl status openclaw
 
-  - echo "Twingate Connector and Moltbot Gateway deployed"
+  - echo "Twingate Connector and OpenClaw Gateway deployed"
 
 final_message: "Both services ready after $UPTIME seconds"
