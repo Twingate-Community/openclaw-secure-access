@@ -2,11 +2,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Terraform](https://img.shields.io/badge/Terraform-1.0+-purple.svg)](https://www.terraform.io/)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 Production-ready deployment guides for [Moltbot](https://molt.bot) (AI-powered chat assistant) across multiple cloud providers and platforms, with Zero Trust security via [Twingate](https://www.twingate.com).
-
-> **Note:** Before publishing, replace all instances of `yourusername` with your actual GitHub username in this README and CONTRIBUTING.md.
 
 ## 🎯 What This Is
 
