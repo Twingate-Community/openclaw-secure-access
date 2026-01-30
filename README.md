@@ -33,7 +33,7 @@ All deployments follow a consistent security-first architecture:
 │  │  VM/Container/Droplet           │    │
 │  │                                 │    │
 │  │  ┌──────────────────────────┐   │    │
-│  │  │ OpenClaw Gateway          │   │    │
+│  │  │ OpenClaw Gateway         │   │    │
 │  │  │ Binds: localhost:18789   │   │    │
 │  │  └──────────────────────────┘   │    │
 │  │                                 │    │
