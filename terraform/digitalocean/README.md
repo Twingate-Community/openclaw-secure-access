@@ -1,6 +1,6 @@
 # Terraform Files for OpenClaw on DigitalOcean
 
-This directory contains Terraform configuration for deploying OpenClaw with Twingate on DigitalOcean.
+This directory contains Terraform configuration for deploying OpenClaw (formerly Clawdbot and Moltbot) with Twingate on DigitalOcean.
 
 ## Files
 
