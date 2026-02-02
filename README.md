@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Terraform](https://img.shields.io/badge/Terraform-1.0+-purple.svg)](https://www.terraform.io/)
 
-Production-ready deployment guides for [OpenClaw](https://molt.bot) (AI-powered chat assistant) across multiple cloud providers and platforms, with Zero Trust security via [Twingate](https://www.twingate.com).
+Production-ready deployment guides for [OpenClaw](https://openclaw.ai) (AI-powered chat assistant) across multiple cloud providers and platforms, with Zero Trust security via [Twingate](https://www.twingate.com).
 
 ## 🎯 What This Is
 
