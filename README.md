@@ -1,13 +1,13 @@
-# Secure OpenClaw Deployments
+# Secure Moltbot Deployments
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Terraform](https://img.shields.io/badge/Terraform-1.0+-purple.svg)](https://www.terraform.io/)
 
-Production-ready deployment guides for [OpenClaw](https://molt.bot) (AI-powered chat assistant) across multiple cloud providers and platforms, with Zero Trust security via [Twingate](https://www.twingate.com).
+Production-ready deployment guides for [Moltbot](https://molt.bot) (AI-powered chat assistant) across multiple cloud providers and platforms, with Zero Trust security via [Twingate](https://www.twingate.com).
 
 ## 🎯 What This Is
 
-A curated collection of **Infrastructure as Code** and **step-by-step guides** for deploying OpenClaw securely in any environment. Each deployment includes:
+A curated collection of **Infrastructure as Code** and **step-by-step guides** for deploying Moltbot securely in any environment. Each deployment includes:
 
 - ✅ **Terraform automation** (where applicable)
 - ✅ **Zero Trust security** with Twingate
@@ -33,7 +33,7 @@ All deployments follow a consistent security-first architecture:
 │  │  VM/Container/Droplet           │    │
 │  │                                 │    │
 │  │  ┌──────────────────────────┐   │    │
-│  │  │ OpenClaw Gateway          │   │    │
+│  │  │ Moltbot Gateway          │   │    │
 │  │  │ Binds: localhost:18789   │   │    │
 │  │  └──────────────────────────┘   │    │
 │  │                                 │    │
@@ -76,9 +76,9 @@ All deployments require:
 - **Cloud/Platform Account**: Sign up for your chosen provider
 - **Twingate Account**: [Free account](https://www.twingate.com) for Zero Trust access
 
-## 🔧 What is OpenClaw?
+## 🔧 What is Moltbot?
 
-[OpenClaw](https://openclaw.ai) is an AI-powered assistant that runs on WhatsApp and Telegram. It provides:
+[Moltbot](https://molt.bot) (also known as Moltbot) is an AI-powered assistant that runs on WhatsApp and Telegram. It provides:
 
 - **Claude/GPT Integration**: Chat with Claude or GPT via WhatsApp/Telegram
 - **Tool Support**: Web search, code execution, file handling
@@ -106,7 +106,7 @@ All deployments in this repo follow these principles:
 
 ## 📖 Additional Resources
 
-- [OpenClaw Documentation](https://docs.openclaw.ai/)
+- [Moltbot Documentation](https://molt.bot/docs)
 - [Twingate Documentation](https://docs.twingate.com)
 
 ## 📝 License
@@ -115,7 +115,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## 🙋 Support
 
-- **Issues**: [GitHub Issues](https://github.com/Twingate-Community/openclaw-secure-access/issues)
+- **Issues**: [GitHub Issues](https://github.com/yourusername/secure-moltbot/issues)
 - **Twingate Subreddit**: [r/Twingate](https://reddit.com/r/twingate)
 
 ---
