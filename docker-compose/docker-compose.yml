@@ -1,10 +1,12 @@
 services:
+  # OpenClaw Gateway — binds to localhost only inside the container.
+  # All access goes through the Caddy reverse proxy on port 80.
   openclaw-gateway:
-    image: openclaw/openclaw:latest
+    image: ghcr.io/openclaw/openclaw:latest
     container_name: openclaw-gateway
     restart: unless-stopped
     ports:
-      - "127.0.0.1:18789:18789"  # Localhost only for security
+      - "127.0.0.1:80:80"  # Caddy reverse proxy (host-local only)
     volumes:
       - ./config:/home/node/.openclaw
       - ./workspace:/home/node/.openclaw/workspace
@@ -21,35 +23,38 @@ services:
       retries: 3
       start_period: 40s
 
+  # OpenClaw CLI — on-demand interactive CLI for onboarding, config, and diagnostics.
+  # Shares the gateway's network namespace so it can reach localhost:18789.
   openclaw-cli:
-    image: openclaw/openclaw:latest
+    image: ghcr.io/openclaw/openclaw:latest
     container_name: openclaw-cli
-    profiles: ["cli"]  # Prevents auto-start
+    entrypoint: ["node", "openclaw.mjs"]
+    profiles: ["cli"]  # Only runs when explicitly invoked
     volumes:
       - ./config:/home/node/.openclaw
       - ./workspace:/home/node/.openclaw/workspace
-    networks:
-      - openclaw-network
+    environment:
+      - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
+    network_mode: "service:openclaw-gateway"
     stdin_open: true
     tty: true
+    depends_on:
+      - openclaw-gateway
 
-  # Caddy reverse proxy for remote access via Twingate
-  # Comment out this section if you only need local access
+  # Caddy reverse proxy — provides HTTP access to the gateway.
+  # Shares the gateway's network namespace so it can proxy localhost:18789 → port 80.
   caddy:
     image: caddy:latest
     container_name: caddy
     restart: unless-stopped
-    ports:
-      - "80:80"
+    network_mode: "service:openclaw-gateway"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-    networks:
-      - openclaw-network
     depends_on:
       - openclaw-gateway
 
-  # Twingate Connector for secure remote access
-  # Comment out this section if you only need local access
+  # Twingate Connector — optional, for secure remote access.
+  # Comment out this section if you only need local access.
   twingate-connector:
     image: twingate/connector:latest
     container_name: twingate-connector

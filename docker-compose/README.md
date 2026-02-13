@@ -42,39 +42,35 @@ This directory contains Docker Compose configuration for deploying OpenClaw (for
 
 ## What Gets Created
 
-- **OpenClaw Gateway**: Main service on localhost:18789 (local access only)
-- **OpenClaw CLI**: Interactive CLI for configuration (manual start only)
-- **Caddy**: Reverse proxy for HTTP access (port 80)
-- **Twingate Connector**: Secure remote access enablement
+- **OpenClaw Gateway**: Main service, binds to localhost inside the container (no direct host exposure)
+- **Caddy**: Reverse proxy — the only way to reach the gateway (port 80)
+- **OpenClaw CLI**: Interactive CLI for onboarding and diagnostics (manual start only)
+- **Twingate Connector**: Optional, for secure remote access
+
+## Architecture
+
+Caddy and the CLI share the gateway's network namespace (`network_mode: service:openclaw-gateway`), so they can reach the gateway on `localhost:18789` without exposing that port to the host or the Docker network. Only port 80 (Caddy) is mapped to the host.
 
 ## Security Notes
 
-- **Gateway binds to localhost only** (`127.0.0.1:18789`) - not accessible from network
-- **Caddy provides HTTP access** - eliminates need for SSH tunneling
-- **Twingate provides Zero Trust access** - no public port exposure
-- **Never commit `.env`** - it contains secrets and API keys
+- **Gateway binds to localhost only** — not accessible from the host or network directly
+- **Caddy is the sole entry point** — reverse proxies `localhost:18789` → port `80`
+- **Host port 80 is bound to `127.0.0.1`** — not reachable from the network
+- **Twingate provides Zero Trust access** — no public port exposure for remote access
+- **Never commit `.env`** — it contains secrets and API keys
 
 ## Local Access Only
 
-If you only need local access, comment out the `caddy` and `twingate-connector` services in `docker-compose.yml`:
+If you only need local access, comment out the `twingate-connector` service in `docker-compose.yml` and start normally:
 
-```yaml
-# Comment out these sections:
-# caddy:
-#   ...
-# twingate-connector:
-#   ...
-```
-
-Then start only the gateway:
 ```bash
-docker compose up -d openclaw-gateway
+docker compose up -d
 ```
 
 ## After Deployment
 
-1. **Local access**: Navigate to `http://localhost:18789/?token=<your-token>`
-2. **Remote access** (if enabled):
+1. **Local access**: Navigate to `http://localhost/?token=<your-token>`
+2. **Remote access** (if Twingate enabled):
    - Configure Twingate Resource in Admin Console
    - Point resource to Docker host IP, port 80
    - Assign access to users/groups
