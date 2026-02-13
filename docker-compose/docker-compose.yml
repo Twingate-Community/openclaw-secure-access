@@ -1,0 +1,74 @@
+services:
+  # OpenClaw Gateway — binds to localhost only inside the container.
+  # All access goes through the Caddy reverse proxy on port 80.
+  openclaw-gateway:
+    image: ghcr.io/openclaw/openclaw:latest
+    container_name: openclaw-gateway
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:80:80"  # Caddy reverse proxy (host-local only)
+    volumes:
+      - ./config:/home/node/.openclaw
+      - ./workspace:/home/node/.openclaw/workspace
+    environment:
+      - CLAUDE_AI_SESSION_KEY=${CLAUDE_AI_SESSION_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
+    networks:
+      - openclaw-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:18789/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # OpenClaw CLI — on-demand interactive CLI for onboarding, config, and diagnostics.
+  # Shares the gateway's network namespace so it can reach localhost:18789.
+  openclaw-cli:
+    image: ghcr.io/openclaw/openclaw:latest
+    container_name: openclaw-cli
+    entrypoint: ["node", "openclaw.mjs"]
+    profiles: ["cli"]  # Only runs when explicitly invoked
+    volumes:
+      - ./config:/home/node/.openclaw
+      - ./workspace:/home/node/.openclaw/workspace
+    environment:
+      - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
+    network_mode: "service:openclaw-gateway"
+    stdin_open: true
+    tty: true
+    depends_on:
+      - openclaw-gateway
+
+  # Caddy reverse proxy — provides HTTP access to the gateway.
+  # Shares the gateway's network namespace so it can proxy localhost:18789 → port 80.
+  caddy:
+    image: caddy:latest
+    container_name: caddy
+    restart: unless-stopped
+    network_mode: "service:openclaw-gateway"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - openclaw-gateway
+
+  # Twingate Connector — optional, for secure remote access.
+  # Comment out this section if you only need local access.
+  twingate-connector:
+    image: twingate/connector:latest
+    container_name: twingate-connector
+    restart: unless-stopped
+    environment:
+      - TWINGATE_NETWORK=${TWINGATE_NETWORK}
+      - TWINGATE_ACCESS_TOKEN=${TWINGATE_ACCESS_TOKEN}
+      - TWINGATE_REFRESH_TOKEN=${TWINGATE_REFRESH_TOKEN}
+      - TWINGATE_LOG_LEVEL=3
+      - TWINGATE_LOG_ANALYTICS=v2
+    network_mode: host
+    sysctls:
+      net.ipv4.ping_group_range: "0 2147483647"
+
+networks:
+  openclaw-network:
+    driver: bridge

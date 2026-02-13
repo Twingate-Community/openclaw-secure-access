@@ -1,0 +1,14 @@
+# Environment files with secrets
+.env
+
+# OpenClaw data directories
+config/
+workspace/
+
+# Caddy data
+caddy_data/
+caddy_config/
+
+# Backup files
+*.tar.gz
+*.zip
